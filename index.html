@@ -1,0 +1,319 @@
+
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Calculadora de Garantia (12 meses) + Proposta</title>
+  <style>
+    :root { --card:#0f1a33; --muted:#9fb0d0; --text:#e9f0ff; --line:#203055; }
+    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;}
+    body{margin:0;background:linear-gradient(180deg,#070b14,#0b1220);color:var(--text);padding:24px;}
+    .wrap{max-width:980px;margin:0 auto;}
+    h1{font-size:20px;margin:0 0 14px;}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px;}
+    @media(min-width:900px){ .grid{grid-template-columns:1fr 1fr;} }
+    .card{background:rgba(15,26,51,.9);border:1px solid var(--line);border-radius:16px;padding:16px;}
+    label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px;}
+    input{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);
+      background:#0b1430;color:var(--text);outline:none;}
+    input:focus{border-color:#3c5aa6;}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+    button{cursor:pointer;border:1px solid var(--line);background:#0b1430;color:var(--text);
+      padding:10px 12px;border-radius:12px;}
+    button:hover{border-color:#3c5aa6;}
+    .result{display:grid;gap:10px;margin-top:10px;}
+    .kpi{border:1px solid var(--line);border-radius:14px;padding:12px;background:rgba(11,20,48,.55);}
+    .kpi .t{font-size:12px;color:var(--muted);}
+    .kpi .v{font-size:18px;margin-top:4px;}
+    .hint{font-size:12px;color:var(--muted);line-height:1.35;margin-top:10px;}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;}
+    .warn{border-left:3px solid #3c5aa6;padding-left:10px;margin-top:10px;}
+
+    /* Área de impressão */
+    #printArea { display:none; color:#111; }
+    @media print{
+      body{background:#fff;color:#111;padding:0;}
+      .wrap, .card, .grid, .btns, #app { display:none !important; }
+      #printArea{ display:block !important; padding:24px; }
+      .p-title{font-size:18px;font-weight:700;margin:0 0 10px;}
+      .p-sub{font-size:12px;margin:0 0 18px;color:#333;}
+      .p-box{border:1px solid #bbb;border-radius:10px;padding:14px;margin:10px 0;}
+      .p-row{display:flex;gap:18px;flex-wrap:wrap;}
+      .p-item{flex:1;min-width:220px;}
+      .p-lbl{font-size:11px;color:#444;margin-bottom:4px;}
+      .p-val{font-size:14px;font-weight:600;}
+      .p-legal{font-size:12px;line-height:1.45;color:#222;}
+      .p-foot{font-size:11px;color:#444;margin-top:14px;}
+      .p-sign{margin-top:22px;}
+      .p-line{height:1px;background:#ddd;margin:14px 0;}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="app">
+    <h1>Calculadora de Garantia (Contrato 12 meses) + Proposta</h1>
+
+    <div class="grid" style="margin-top:14px;">
+      <div class="card">
+        <label for="empresa">Nome da empresa</label>
+        <input id="empresa" placeholder="Ex.: TECMETAL ESTRUTURAS METÁLICAS LTDA" />
+
+        <label for="divida">Dívida (R$)</label>
+        <input id="divida" inputmode="decimal" placeholder="Ex.: 987000,00" />
+
+        <div class="row">
+          <div>
+            <label for="cobertura">Percentual a garantir (%)</label>
+            <input id="cobertura" inputmode="decimal" value="100" />
+          </div>
+          <div>
+            <label for="taxa">Taxa mensal da garantia (% a.m. sobre o valor garantido)</label>
+            <input id="taxa" inputmode="decimal" value="0,13" />
+          </div>
+        </div>
+
+        <div class="hint warn">
+          Ordem do discurso:
+          <br/>1) dívida → 2) % garantido → 3) custo mensal → 4) split mensal 10/90 → 5) total 12 meses.
+        </div>
+
+        <div class="btns">
+          <button id="calcBtn">Calcular</button>
+          <button id="printBtn" type="button">Imprimir proposta</button>
+          <button id="resetBtn" type="button">Limpar</button>
+        </div>
+
+        <div class="hint">
+          Split fixo do <span class="mono">mensal</span>:
+          <br/>• 10% = Assessoria promocional (mês)
+          <br/>• 90% = Aluguel de bem para apresentação em garantia (mês)
+          <br/>Contrato: <span class="mono">12 meses</span>.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="result">
+          <div class="kpi">
+            <div class="t">Empresa</div>
+            <div class="v" id="outEmpresa">—</div>
+          </div>
+          <div class="kpi">
+            <div class="t">Dívida informada</div>
+            <div class="v" id="outDivida">—</div>
+          </div>
+          <div class="kpi">
+            <div class="t">% garantido e valor garantido</div>
+            <div class="v" id="outGarantiaBase">—</div>
+          </div>
+
+          <div class="kpi">
+            <div class="t">Valor mensal da garantia (mensal mencionado)</div>
+            <div class="v" id="outMensalTotal">—</div>
+          </div>
+
+          <div class="kpi">
+            <div class="t">Assessoria promocional (10% do mensal)</div>
+            <div class="v" id="outMensalAssessoria">—</div>
+          </div>
+
+          <div class="kpi">
+            <div class="t">Aluguel de bem p/ apresentação em garantia (90% do mensal)</div>
+            <div class="v" id="outMensalAluguelBem">—</div>
+          </div>
+
+          <div class="kpi">
+            <div class="t">Valor total do contrato (12 meses)</div>
+            <div class="v" id="outTotalContrato">—</div>
+          </div>
+        </div>
+
+        <div class="hint" id="obs">
+          Obs.: métrica comercial. Não substitui análise jurídica do caso concreto.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Área que vai para impressão -->
+  <div id="printArea">
+    <p class="p-title">Proposta – Contrato de Garantia (12 meses)</p>
+    <p class="p-sub" id="pMeta">—</p>
+
+    <div class="p-box">
+      <div class="p-row">
+        <div class="p-item">
+          <div class="p-lbl">Empresa</div>
+          <div class="p-val" id="pEmpresa">—</div>
+        </div>
+        <div class="p-item">
+          <div class="p-lbl">Dívida informada</div>
+          <div class="p-val" id="pDivida">—</div>
+        </div>
+      </div>
+
+      <div class="p-line"></div>
+
+      <div class="p-row">
+        <div class="p-item">
+          <div class="p-lbl">Percentual a garantir</div>
+          <div class="p-val" id="pPct">—</div>
+        </div>
+        <div class="p-item">
+          <div class="p-lbl">Valor garantido</div>
+          <div class="p-val" id="pGarantido">—</div>
+        </div>
+        <div class="p-item">
+          <div class="p-lbl">Taxa mensal aplicada</div>
+          <div class="p-val" id="pTaxa">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-box">
+      <div class="p-row">
+        <div class="p-item">
+          <div class="p-lbl">Valor mensal da garantia (mensal mencionado)</div>
+          <div class="p-val" id="pMensalTotal">—</div>
+        </div>
+        <div class="p-item">
+          <div class="p-lbl">Assessoria promocional (10% do mensal)</div>
+          <div class="p-val" id="pMensalAssessoria">—</div>
+        </div>
+        <div class="p-item">
+          <div class="p-lbl">Aluguel de bem p/ apresentação em garantia (90% do mensal)</div>
+          <div class="p-val" id="pMensalAluguelBem">—</div>
+        </div>
+      </div>
+
+      <div class="p-line"></div>
+
+      <div class="p-row">
+        <div class="p-item">
+          <div class="p-lbl">Prazo do contrato</div>
+          <div class="p-val">12 meses</div>
+        </div>
+        <div class="p-item">
+          <div class="p-lbl">Total do contrato (12 meses)</div>
+          <div class="p-val" id="pTotalContrato">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-box">
+      <div class="p-lbl" style="font-weight:700;margin-bottom:6px;">Informação legal (resumo)</div>
+      <div class="p-legal">
+        Em procedimentos de execução, a regularização do débito normalmente ocorre por uma das seguintes vias:
+        (i) pagamento integral; (ii) parcelamento/negociação; ou (iii) garantia do juízo, mediante apresentação de bem idôneo,
+        como imóvel, seguro-garantia ou fiança bancária, conforme o caso. A garantia do juízo é instrumento que permite
+        maior previsibilidade e continuidade da discussão do caso, observadas as regras legais aplicáveis e a aceitação pelo
+        juízo competente. Esta proposta possui caráter informativo e comercial, não substituindo a análise jurídica do caso
+        concreto nem implicando garantia de resultado.
+      </div>
+      <div class="p-foot">
+        *Texto informativo. A estratégia adequada depende da natureza do crédito, fase do processo e garantias existentes.
+      </div>
+    </div>
+
+    <div class="p-sign">
+      <div style="font-size:12px;color:#333;margin-bottom:6px;">Responsável técnico:</div>
+      <div style="font-weight:700;font-size:14px;">José Falcão</div>
+      <div style="font-size:12px;">Especialista em Negociação Regulamentar e Risco Operacional</div>
+      <div style="font-size:12px;">Grupo Villela – Gestão Empresarial</div>
+      <div style="font-size:12px;margin-top:4px;">Contato: (51) 9 9203-9175</div>
+      <div style="margin-top:22px;">________________________________________</div>
+      <div style="font-size:11px;color:#444;margin-top:6px;">Assinatura</div>
+    </div>
+  </div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  function parseBRNumber(v){
+    if(v == null) return 0;
+    v = String(v).trim();
+    if(!v) return 0;
+    v = v.replace(/[R$\s]/g,'');
+    v = v.replace(/\./g,'');
+    v = v.replace(/,/g,'.');
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function formatBRL(n){
+    try{
+      return n.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+    }catch{
+      return 'R$ ' + (Math.round(n*100)/100).toFixed(2);
+    }
+  }
+
+  function clamp(n, min, max){
+    return Math.min(Math.max(n, min), max);
+  }
+
+  function nowBR(){
+    return new Date().toLocaleString('pt-BR');
+  }
+
+  function calcular(){
+    const empresa = ($('empresa').value || '').trim();
+    const divida = parseBRNumber($('divida').value);
+    const pctGarantir = clamp(parseBRNumber($('cobertura').value), 0, 100);
+    const taxaPctMes = Math.max(parseBRNumber($('taxa').value), 0);
+
+    const valorGarantido = divida * (pctGarantir/100);
+    const mensalTotal = valorGarantido * (taxaPctMes/100);
+    const mensalAssessoria = mensalTotal * 0.10;
+    const mensalAluguelBem = mensalTotal * 0.90;
+    const totalContrato = mensalTotal * 12;
+
+    $('outEmpresa').textContent = empresa || '—';
+    $('outDivida').textContent = formatBRL(divida);
+    $('outGarantiaBase').textContent = `${pctGarantir.toLocaleString('pt-BR')}% → ${formatBRL(valorGarantido)}`;
+    $('outMensalTotal').textContent = formatBRL(mensalTotal);
+    $('outMensalAssessoria').textContent = formatBRL(mensalAssessoria);
+    $('outMensalAluguelBem').textContent = formatBRL(mensalAluguelBem);
+    $('outTotalContrato').textContent = formatBRL(totalContrato);
+
+    $('pMeta').textContent = `Gerado em ${nowBR()}`;
+    $('pEmpresa').textContent = empresa || '—';
+    $('pDivida').textContent = formatBRL(divida);
+    $('pPct').textContent = `${pctGarantir.toLocaleString('pt-BR')}%`;
+    $('pGarantido').textContent = formatBRL(valorGarantido);
+    $('pTaxa').textContent = `${taxaPctMes.toLocaleString('pt-BR')}% a.m.`;
+    $('pMensalTotal').textContent = formatBRL(mensalTotal);
+    $('pMensalAssessoria').textContent = formatBRL(mensalAssessoria);
+    $('pMensalAluguelBem').textContent = formatBRL(mensalAluguelBem);
+    $('pTotalContrato').textContent = formatBRL(totalContrato);
+
+    return { empresa, divida };
+  }
+
+  $('calcBtn').addEventListener('click', () => calcular());
+
+  $('printBtn').addEventListener('click', () => {
+    const dados = calcular();
+    if(!dados.empresa){
+      alert('Preenche o nome da empresa antes de imprimir.');
+      return;
+    }
+    if(!(dados.divida > 0)){
+      alert('Informa a dívida (valor maior que zero) antes de imprimir.');
+      return;
+    }
+    window.print();
+  });
+
+  $('resetBtn').addEventListener('click', () => {
+    $('empresa').value = '';
+    $('divida').value = '';
+    $('cobertura').value = '100';
+    $('taxa').value = '0,13';
+    ['outEmpresa','outDivida','outGarantiaBase','outMensalTotal','outMensalAssessoria','outMensalAluguelBem','outTotalContrato']
+      .forEach(id => $(id).textContent='—');
+  });
+</script>
+</body>
+</html>
