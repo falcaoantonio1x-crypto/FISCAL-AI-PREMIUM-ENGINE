@@ -7,11 +7,12 @@
 
   <style>
     :root{
-      --bg:#070b14;--card:#0f1a33;--line:#203055;
+      --bg1:#070b14;--bg2:#0b1220;
+      --card:#0f1a33;--line:#203055;
       --text:#e9f0ff;--muted:#9fb0d0;--accent:#3c5aa6;
     }
     *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;}
-    body{margin:0;background:linear-gradient(180deg,#070b14,#0b1220);color:var(--text);padding:24px;}
+    body{margin:0;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:var(--text);padding:24px;}
     .wrap{max-width:1100px;margin:auto;}
     h1{margin:0 0 16px;font-size:22px;}
 
@@ -23,60 +24,123 @@
       border:1px solid var(--line);
       border-radius:16px;
       padding:18px;
-      display:flex;flex-direction:column;
+      display:flex;
+      flex-direction:column;
     }
 
     label{font-size:12px;color:var(--muted);margin:10px 0 6px;}
     input{
-      width:100%;padding:10px 12px;border-radius:12px;
-      border:1px solid var(--line);background:#0b1430;color:var(--text);
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#0b1430;
+      color:var(--text);
+      outline:none;
     }
+    input:focus{border-color:var(--accent);}
 
     .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 
     .hint{
-      font-size:12px;color:var(--muted);line-height:1.35;margin-top:12px;
-      border-left:3px solid var(--accent);padding-left:10px;
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.35;
+      margin-top:12px;
+      border-left:3px solid var(--accent);
+      padding-left:10px;
     }
 
     .result{display:grid;gap:10px;}
     .kpi{
-      border:1px solid var(--line);border-radius:14px;
-      padding:12px;background:rgba(11,20,48,.6);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      background:rgba(11,20,48,.6);
     }
     .kpi .t{font-size:12px;color:var(--muted);}
     .kpi .v{font-size:18px;margin-top:4px;}
 
     .footer-actions{
-      margin-top:auto;padding-top:16px;
-      display:flex;gap:10px;flex-wrap:wrap;
+      margin-top:auto;
+      padding-top:16px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
     }
-
     button{
-      cursor:pointer;border:1px solid var(--line);
-      background:#0b1430;color:var(--text);
-      padding:10px 14px;border-radius:12px;min-width:160px;
+      cursor:pointer;
+      border:1px solid var(--line);
+      background:#0b1430;
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:12px;
+      min-width:160px;
     }
     button:hover{border-color:var(--accent);}
 
-    /* BLOQUEIO POR SENHA */
+    /* ===== Lock Screen (sem expor senhas) ===== */
     #lock{
       position:fixed;inset:0;z-index:9999;
-      background:#070b14;display:flex;align-items:center;justify-content:center;
+      background:rgba(7,11,20,.92);
+      backdrop-filter: blur(6px);
+      display:flex;align-items:center;justify-content:center;
+      padding:16px;
     }
     #lockBox{
-      background:#0f1a33;border:1px solid #203055;border-radius:16px;
-      padding:24px;width:100%;max-width:360px;text-align:center;
+      background:rgba(15,26,51,.98);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:22px;
+      width:100%;
+      max-width:460px;
+      text-align:left;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
     }
-    #lockBox input{margin-top:10px;}
-    #lockErr{display:none;color:#ff6b6b;font-size:12px;margin-top:10px;}
+    #lockTitle{
+      font-size:18px;
+      font-weight:700;
+      margin:0 0 8px;
+    }
+    #lockDesc{
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.4;
+      margin:0 0 14px;
+    }
+    #lockMeta{
+      font-size:12px;color:var(--muted);
+      border-left:3px solid var(--accent);
+      padding-left:10px;
+      margin:0 0 14px;
+    }
+    #lockErr{
+      display:none;
+      color:#ff7b7b;
+      font-size:12px;
+      margin-top:10px;
+    }
+    #lockRow{
+      display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;
+    }
+    #lockRow button{min-width:unset;flex:1;}
+    #trialBadge{
+      display:inline-block;
+      font-size:11px;
+      padding:4px 8px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      color:var(--muted);
+      margin-left:8px;
+      vertical-align:middle;
+    }
 
-    /* IMPRESSÃO */
+    /* ===== Impressão ===== */
     #printArea{display:none;color:#111;}
     @media print{
       body{background:#fff;color:#111;padding:0;}
-      #app,#lock{display:none;}
-      #printArea{display:block;padding:24px;}
+      #app,#lock{display:none !important;}
+      #printArea{display:block !important;padding:24px;}
       .p-box{border:1px solid #bbb;border-radius:10px;padding:14px;margin:12px 0;}
       .p-title{font-size:18px;font-weight:700;margin-bottom:8px;}
       .p-sub{font-size:12px;color:#333;margin-bottom:18px;}
@@ -89,14 +153,29 @@
 
 <body>
 
-<!-- BLOQUEIO -->
+<!-- LOCK (não mostra senha nenhuma) -->
 <div id="lock">
   <div id="lockBox">
-    <h2>Acesso restrito</h2>
-    <p style="font-size:13px;color:#9fb0d0">Informe a senha</p>
-    <input id="senha" type="password" placeholder="Senha de acesso">
-    <button onclick="acessar()">Entrar</button>
-    <div id="lockErr">Senha incorreta</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div>
+        <div id="lockTitle">Acesso restrito</div>
+        <div id="lockDesc">Informe a senha de acesso para utilizar a calculadora e gerar a proposta.</div>
+      </div>
+      <span id="trialBadge">Amostra 1 min</span>
+    </div>
+
+    <div id="lockMeta" aria-live="polite">
+      A amostra libera por 1 minuto e pode ser usada uma única vez por navegador. Após isso, somente acesso autorizado.
+    </div>
+
+    <input id="senha" type="password" placeholder="Senha de acesso" autocomplete="current-password" />
+
+    <div id="lockRow">
+      <button type="button" onclick="acessar()">Entrar</button>
+      <button type="button" onclick="bloquearAgora()">Bloquear</button>
+    </div>
+
+    <div id="lockErr"></div>
   </div>
 </div>
 
@@ -108,19 +187,19 @@
     <!-- ENTRADA -->
     <div class="card">
       <label>Nome da empresa</label>
-      <input id="empresa">
+      <input id="empresa" placeholder="Ex.: TECMETAL ESTRUTURAS METÁLICAS LTDA" />
 
       <label>Dívida (R$)</label>
-      <input id="divida">
+      <input id="divida" placeholder="Ex.: 525.762,58" />
 
       <div class="row">
         <div>
           <label>% a garantir</label>
-          <input id="pct" value="100">
+          <input id="pct" value="100" />
         </div>
         <div>
           <label>Taxa mensal (% a.m.)</label>
-          <input id="taxa" value="0,36">
+          <input id="taxa" value="0,36" />
         </div>
       </div>
 
@@ -129,9 +208,9 @@
       </div>
 
       <div class="footer-actions">
-        <button onclick="calcular()">Calcular</button>
-        <button onclick="imprimir()">Gerar / Imprimir proposta</button>
-        <button onclick="limpar()">Limpar</button>
+        <button type="button" onclick="calcular()">Calcular</button>
+        <button type="button" onclick="imprimir()">Gerar / Imprimir proposta</button>
+        <button type="button" onclick="limpar()">Limpar</button>
       </div>
     </div>
 
@@ -165,9 +244,11 @@
   </div>
 
   <div class="p-box p-legal">
-    Em execução judicial, o devedor normalmente: (i) paga, (ii) parcela, ou (iii) garante o juízo
-    por bem idôneo (ex.: imóvel, seguro-garantia ou fiança bancária), permitindo a continuidade da
-    discussão do débito conforme aceitação do juízo.
+    Em execução judicial, a regularização do débito normalmente ocorre por uma das seguintes vias:
+    (i) pagamento integral; (ii) parcelamento/negociação; ou (iii) garantia do juízo por bem idôneo
+    (ex.: imóvel, seguro-garantia ou fiança bancária), permitindo previsibilidade e continuidade da
+    discussão do débito, conforme aceitação do juízo competente. Esta proposta possui caráter informativo
+    e comercial, não substituindo a análise do caso concreto nem implicando garantia de resultado.
   </div>
 
   <div class="p-box">
@@ -179,43 +260,154 @@
 </div>
 
 <script>
-const SENHA = "joséfalcao";
+/* ===========================
+   ACESSO (TRIAL ÚNICO + MASTER)
+   - Não expõe senhas na tela
+   =========================== */
+const SENHA_MASTER = "joséfalcao";
+const SENHA_TRIAL  = "1234";
+const TRIAL_MS     = 1 * 60 * 1000;       // 1 min (AMOSTRA)
+const MASTER_MS    = 8 * 60 * 60 * 1000;  // 8h (ajusta se quiser)
 
-function acessar(){
-  if(document.getElementById('senha').value === SENHA){
-    document.getElementById('lock').style.display='none';
+const KEY_EXPIRA = "acesso_expira_em";
+const KEY_MODO = "acesso_modo";            // "trial" | "master"
+const KEY_TRIAL_USADO = "trial_ja_usado";  // "1" se trial já foi usado
+
+function showErr(msg){
+  const el = document.getElementById('lockErr');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideErr(){
+  const el = document.getElementById('lockErr');
+  el.textContent = '';
+  el.style.display = 'none';
+}
+function showLock(){
+  document.getElementById('lock').style.display = 'flex';
+}
+function hideLock(){
+  document.getElementById('lock').style.display = 'none';
+  hideErr();
+}
+function setAcesso(modo){
+  const dur = (modo === "trial") ? TRIAL_MS : MASTER_MS;
+  const expiraEm = Date.now() + dur;
+  localStorage.setItem(KEY_EXPIRA, String(expiraEm));
+  localStorage.setItem(KEY_MODO, modo);
+  if(modo === "trial") localStorage.setItem(KEY_TRIAL_USADO, "1");
+  hideLock();
+  agendarRelock();
+}
+function bloquearAgora(){
+  localStorage.removeItem(KEY_EXPIRA);
+  localStorage.removeItem(KEY_MODO);
+  document.getElementById('senha').value = "";
+  showLock();
+
+  const trialUsado = localStorage.getItem(KEY_TRIAL_USADO) === "1";
+  if(trialUsado){
+    showErr("A amostra já foi utilizada neste navegador. Utilize a senha autorizada para acesso.");
   } else {
-    document.getElementById('lockErr').style.display='block';
+    hideErr();
   }
 }
+function validarAcesso(){
+  const expiraEm = Number(localStorage.getItem(KEY_EXPIRA) || "0");
+  if(Date.now() < expiraEm){
+    hideLock();
+    agendarRelock();
+  } else {
+    bloquearAgora();
+  }
+}
+function agendarRelock(){
+  if(window.__relockTimer) clearTimeout(window.__relockTimer);
+  const expiraEm = Number(localStorage.getItem(KEY_EXPIRA) || "0");
+  const falta = expiraEm - Date.now();
+  if(falta > 0){
+    window.__relockTimer = setTimeout(() => bloquearAgora(), falta);
+  }
+}
+function acessar(){
+  const digitada = document.getElementById('senha').value;
 
-function n(v){return parseFloat(v.replace(/\./g,'').replace(',','.'))||0;}
-function m(v){return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+  if(digitada === SENHA_MASTER){
+    setAcesso("master");
+    return;
+  }
 
-function calcular(){
-  const emp=empresa.value, d=n(divida.value), p=n(pct.value)/100, t=n(taxa.value)/100;
-  const g=d*p, mensal=g*t, ass=mensal*0.1, alug=mensal*0.9, total=mensal*12;
+  if(digitada === SENHA_TRIAL){
+    const trialUsado = localStorage.getItem(KEY_TRIAL_USADO) === "1";
+    if(trialUsado){
+      showErr("A amostra já foi utilizada neste navegador. Utilize a senha autorizada para acesso.");
+      return;
+    }
+    setAcesso("trial");
+    return;
+  }
 
-  rEmpresa.innerText=emp;
-  rDivida.innerText=m(d);
-  rGarantia.innerText=(p*100)+'% → '+m(g);
-  rMensal.innerText=m(mensal);
-  rAss.innerText=m(ass);
-  rAlug.innerText=m(alug);
-  rTotal.innerText=m(total);
-
-  pEmpresa.innerText=emp;
-  pDivida.innerText=m(d);
-  pGarantia.innerText=(p*100)+'% → '+m(g);
-  pMensal.innerText=m(mensal);
-  pAss.innerText=m(ass);
-  pAlug.innerText=m(alug);
-  pTotal.innerText=m(total);
-  pMeta.innerText='Gerado em '+new Date().toLocaleString('pt-BR');
+  showErr("Senha incorreta.");
 }
 
-function imprimir(){calcular();window.print();}
-function limpar(){empresa.value='';divida.value='';}
+// Enter para enviar
+document.addEventListener('keydown', (e) => {
+  const lockVisible = document.getElementById('lock').style.display !== 'none';
+  if(lockVisible && e.key === 'Enter'){
+    acessar();
+  }
+});
+
+window.addEventListener('load', validarAcesso);
+
+/* ===========================
+   CALCULADORA
+   =========================== */
+function n(v){
+  return parseFloat(String(v||"").replace(/\./g,'').replace(',','.')) || 0;
+}
+function m(v){
+  return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+}
+function calcular(){
+  const emp = (empresa.value || "").trim();
+  const d = n(divida.value);
+  const p = n(pct.value)/100;
+  const t = n(taxa.value)/100;
+
+  const g = d*p;
+  const mensal = g*t;
+  const ass = mensal*0.10;
+  const alug = mensal*0.90;
+  const total = mensal*12;
+
+  rEmpresa.innerText = emp || "—";
+  rDivida.innerText = d>0 ? m(d) : "—";
+  rGarantia.innerText = d>0 ? (p*100)+'% → '+m(g) : "—";
+  rMensal.innerText = d>0 ? m(mensal) : "—";
+  rAss.innerText = d>0 ? m(ass) : "—";
+  rAlug.innerText = d>0 ? m(alug) : "—";
+  rTotal.innerText = d>0 ? m(total) : "—";
+
+  pEmpresa.innerText = emp || "—";
+  pDivida.innerText = d>0 ? m(d) : "—";
+  pGarantia.innerText = d>0 ? (p*100)+'% → '+m(g) : "—";
+  pMensal.innerText = d>0 ? m(mensal) : "—";
+  pAss.innerText = d>0 ? m(ass) : "—";
+  pAlug.innerText = d>0 ? m(alug) : "—";
+  pTotal.innerText = d>0 ? m(total) : "—";
+  pMeta.innerText = 'Gerado em ' + new Date().toLocaleString('pt-BR');
+}
+function imprimir(){
+  calcular();
+  window.print();
+}
+function limpar(){
+  empresa.value = '';
+  divida.value = '';
+  pct.value = '100';
+  calcular();
+}
 </script>
 
 </body>
