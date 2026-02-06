@@ -1,413 +1,590 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Calculadora de Garantia (12 meses) + Proposta</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Motor Fiscal — Diagnóstico Estratégico & Proposta</title>
 
-  <style>
-    :root{
-      --bg1:#070b14;--bg2:#0b1220;
-      --card:#0f1a33;--line:#203055;
-      --text:#e9f0ff;--muted:#9fb0d0;--accent:#3c5aa6;
-    }
-    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;}
-    body{margin:0;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:var(--text);padding:24px;}
-    .wrap{max-width:1100px;margin:auto;}
-    h1{margin:0 0 16px;font-size:22px;}
+<style>
+  :root{
+    --p:#0f172a; --a:#2563eb;
+    --crit:#ef4444; --alto:#f97316; --medio:#eab308; --ok:#10b981;
+    --bg:#f8fafc; --text:#1e293b; --muted:#64748b;
+  }
+  *{box-sizing:border-box;font-family:Segoe UI,Roboto,system-ui,sans-serif}
+  body{margin:0;background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100vh}
+  .hidden{display:none}
+  .blur{filter:blur(12px);opacity:.25;pointer-events:none}
 
-    .grid{display:grid;grid-template-columns:1fr;gap:16px;}
-    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr;}}
+  /* LOGIN */
+  #login{position:fixed;inset:0;background:var(--p);display:flex;align-items:center;justify-content:center;z-index:9999}
+  .login-card{background:#fff;padding:2.5rem;border-radius:14px;width:340px;text-align:center}
+  .login-card h2{margin:0 0 1rem}
+  .login-card input{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;font-size:1rem}
 
-    .card{
-      background:rgba(15,26,51,.95);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:18px;
-      display:flex;
-      flex-direction:column;
-    }
+  /* HEADER */
+  header{background:var(--p);color:#fff;padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;font-weight:800}
 
-    label{font-size:12px;color:var(--muted);margin:10px 0 6px;}
-    input{
-      width:100%;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:#0b1430;
-      color:var(--text);
-      outline:none;
-    }
-    input:focus{border-color:var(--accent);}
+  /* LAYOUT */
+  main{flex:1;display:flex;gap:1.5rem;padding:1.5rem;overflow:hidden}
+  .left{flex:1;overflow-y:auto;border-right:1px solid #e2e8f0;padding-right:1rem}
+  .right{flex:1.35;background:#fff;border-radius:18px;padding:2rem;overflow-y:auto;position:relative;box-shadow:0 6px 30px rgba(0,0,0,.08)}
+  .lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--muted)}
+  .sub{font-size:.85rem;color:var(--muted);line-height:1.35;margin-top:6px}
 
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  /* FORM */
+  .form-group{margin-bottom:1.2rem}
+  label{display:block;font-size:.75rem;font-weight:900;color:var(--muted);text-transform:uppercase;margin-bottom:.4rem}
+  input,textarea{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;font-size:1rem}
+  textarea{resize:vertical}
+  .btn{border:none;border-radius:10px;font-weight:900;cursor:pointer;text-transform:uppercase}
+  .btn-main{background:var(--ok);color:#fff;padding:16px;width:100%}
+  .btn-main:hover{background:#059669;transform:translateY(-2px)}
+  .btn-dark{background:var(--p);color:#fff;padding:14px;width:100%;margin-top:1.2rem}
 
-    .hint{
-      font-size:12px;
-      color:var(--muted);
-      line-height:1.35;
-      margin-top:12px;
-      border-left:3px solid var(--accent);
-      padding-left:10px;
-    }
+  .checks{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .checks .item{
+    display:flex;gap:8px;align-items:flex-start;
+    padding:10px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;
+    font-size:.88rem;color:#0f172a;
+  }
+  .checks .item input{margin-top:3px}
+  .checks .item small{display:block;color:var(--muted);font-size:.78rem;line-height:1.25;margin-top:2px}
 
-    .result{display:grid;gap:10px;}
-    .kpi{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
-      background:rgba(11,20,48,.6);
-    }
-    .kpi .t{font-size:12px;color:var(--muted);}
-    .kpi .v{font-size:18px;margin-top:4px;}
+  /* RESULT */
+  .risk{display:inline-block;padding:6px 14px;border-radius:99px;color:#fff;font-weight:900;font-size:.75rem;margin-bottom:10px}
+  .box{background:#f1f5f9;border-left:5px solid var(--p);padding:1.2rem;border-radius:10px;margin:14px 0}
+  .box h3{margin:0 0 6px 0;font-size:.9rem;text-transform:uppercase;color:var(--muted);letter-spacing:.4px}
+  .box p{margin:0;color:#0f172a;line-height:1.5}
+  .box ul{margin:8px 0 0 18px;line-height:1.55}
+  .box li{margin:6px 0}
 
-    .footer-actions{
-      margin-top:auto;
-      padding-top:16px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    button{
-      cursor:pointer;
-      border:1px solid var(--line);
-      background:#0b1430;
-      color:var(--text);
-      padding:10px 14px;
-      border-radius:12px;
-      min-width:160px;
-    }
-    button:hover{border-color:var(--accent);}
+  .strats{display:flex;gap:8px;margin:1.1rem 0}
+  .strats button{
+    flex:1;padding:12px;border:2px solid #e2e8f0;border-radius:10px;background:#fff;font-weight:900;font-size:.85rem
+  }
+  .strats button.active{border-color:var(--a);background:#eff6ff;color:var(--a)}
 
-    /* ===== Lock Screen (sem expor senhas) ===== */
-    #lock{
-      position:fixed;inset:0;z-index:9999;
-      background:rgba(7,11,20,.92);
-      backdrop-filter: blur(6px);
-      display:flex;align-items:center;justify-content:center;
-      padding:16px;
-    }
-    #lockBox{
-      background:rgba(15,26,51,.98);
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:22px;
-      width:100%;
-      max-width:460px;
-      text-align:left;
-      box-shadow: 0 20px 60px rgba(0,0,0,.35);
-    }
-    #lockTitle{
-      font-size:18px;
-      font-weight:700;
-      margin:0 0 8px;
-    }
-    #lockDesc{
-      font-size:13px;
-      color:var(--muted);
-      line-height:1.4;
-      margin:0 0 14px;
-    }
-    #lockMeta{
-      font-size:12px;color:var(--muted);
-      border-left:3px solid var(--accent);
-      padding-left:10px;
-      margin:0 0 14px;
-    }
-    #lockErr{
-      display:none;
-      color:#ff7b7b;
-      font-size:12px;
-      margin-top:10px;
-    }
-    #lockRow{
-      display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;
-    }
-    #lockRow button{min-width:unset;flex:1;}
-    #trialBadge{
-      display:inline-block;
-      font-size:11px;
-      padding:4px 8px;
-      border:1px solid var(--line);
-      border-radius:999px;
-      color:var(--muted);
-      margin-left:8px;
-      vertical-align:middle;
-    }
+  .price{
+    background:var(--p);color:#fff;padding:1.4rem;border-radius:16px;text-align:center;margin:1.4rem 0
+  }
+  .price .val{font-size:2.2rem;font-weight:900;color:#60a5fa;margin-top:6px}
+  .split{
+    display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;
+    text-align:left;
+  }
+  .pill{
+    border:1px solid rgba(255,255,255,.18);
+    background:rgba(255,255,255,.04);
+    border-radius:12px;padding:10px 12px;
+  }
+  .pill .t{font-size:.78rem;opacity:.8;text-transform:uppercase;font-weight:800}
+  .pill .v{margin-top:4px;font-size:1.05rem;font-weight:900}
+  .note{opacity:.75;font-size:.85rem;margin-top:10px;line-height:1.35}
 
-    /* ===== Impressão ===== */
-    #printArea{display:none;color:#111;}
-    @media print{
-      body{background:#fff;color:#111;padding:0;}
-      #app,#lock{display:none !important;}
-      #printArea{display:block !important;padding:24px;}
-      .p-box{border:1px solid #bbb;border-radius:10px;padding:14px;margin:12px 0;}
-      .p-title{font-size:18px;font-weight:700;margin-bottom:8px;}
-      .p-sub{font-size:12px;color:#333;margin-bottom:18px;}
-      .p-lbl{font-size:11px;color:#444;}
-      .p-val{font-size:14px;font-weight:600;margin-bottom:8px;}
-      .p-legal{font-size:12px;line-height:1.45;}
-    }
-  </style>
+  .legal{
+    font-size:.84rem;color:#334155;line-height:1.6;border-top:1px solid #e5e7eb;padding-top:1.2rem
+  }
+  .legal strong{color:#0f172a}
+
+  @media print{
+    header,.left,.btn,.strats,#login{display:none!important}
+    body{background:#fff}
+    .right{box-shadow:none}
+  }
+</style>
 </head>
 
 <body>
 
-<!-- LOCK (não mostra senha nenhuma) -->
-<div id="lock">
-  <div id="lockBox">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-      <div>
-        <div id="lockTitle">Acesso restrito</div>
-        <div id="lockDesc">Informe a senha de acesso para utilizar a calculadora e gerar a proposta.</div>
-      </div>
-      <span id="trialBadge">Amostra 1 min</span>
-    </div>
-
-    <div id="lockMeta" aria-live="polite">
-      A amostra libera por 1 minuto e pode ser usada uma única vez por navegador. Após isso, somente acesso autorizado.
-    </div>
-
-    <input id="senha" type="password" placeholder="Senha de acesso" autocomplete="current-password" />
-
-    <div id="lockRow">
-      <button type="button" onclick="acessar()">Entrar</button>
-      <button type="button" onclick="bloquearAgora()">Bloquear</button>
-    </div>
-
-    <div id="lockErr"></div>
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-card">
+    <h2>Acesso Restrito</h2>
+    <input type="password" id="pass" placeholder="Senha master" />
+    <button class="btn btn-main" style="background:var(--a);margin-top:12px" onclick="login()">Entrar</button>
+    <div class="sub">Acesso comercial (front-end). Não substitui controle de usuários em backend.</div>
   </div>
 </div>
 
-<div class="wrap" id="app">
-  <h1>Calculadora de Garantia (Contrato 12 meses) + Proposta</h1>
+<header>
+  <div>FISCAL AI <span style="font-weight:300;opacity:.7">PREMIUM ENGINE</span></div>
+  <div style="font-size:.82rem;opacity:.85">index único</div>
+</header>
 
-  <div class="grid">
+<main id="app" class="hidden">
+  <section class="left">
+    <div class="form-group">
+      <label>Contribuinte</label>
+      <input id="name" placeholder="Empresa / Pessoa Física" />
+    </div>
 
-    <!-- ENTRADA -->
-    <div class="card">
-      <label>Nome da empresa</label>
-      <input id="empresa" placeholder="Ex.: TECMETAL ESTRUTURAS METÁLICAS LTDA" />
+    <div class="form-group">
+      <label>Valor do passivo (R$)</label>
+      <input id="value" placeholder="R$ 0,00" oninput="mask(this)" />
+    </div>
 
-      <label>Dívida (R$)</label>
-      <input id="divida" placeholder="Ex.: 525.762,58" />
-
-      <div class="row">
-        <div>
-          <label>% a garantir</label>
-          <input id="pct" value="100" />
+    <div class="form-group">
+      <label>Gatilhos / contexto do caso</label>
+      <div class="checks">
+        <div class="item">
+          <input type="checkbox" id="x_exec" />
+          <div>
+            <div><b>Execução fiscal em andamento</b></div>
+            <small>Indício de judicialização e possibilidade de atos constritivos.</small>
+          </div>
         </div>
-        <div>
-          <label>Taxa mensal (% a.m.)</label>
-          <input id="taxa" value="0,36" />
+
+        <div class="item">
+          <input type="checkbox" id="x_penhora" />
+          <div>
+            <div><b>Penhora / constrição</b></div>
+            <small>Risco patrimonial efetivo (valores/bens/recebíveis).</small>
+          </div>
+        </div>
+
+        <div class="item">
+          <input type="checkbox" id="x_sisbajud" />
+          <div>
+            <div><b>Contas bloqueadas (SISBAJUD)</b></div>
+            <small>Impacto direto no caixa e operação.</small>
+          </div>
+        </div>
+
+        <div class="item">
+          <input type="checkbox" id="x_bens" />
+          <div>
+            <div><b>Bloqueio de bens / restrição</b></div>
+            <small>Ex.: restrição de veículo, indisponibilidade, etc.</small>
+          </div>
+        </div>
+
+        <div class="item">
+          <input type="checkbox" id="x_certidao" />
+          <div>
+            <div><b>Precisa de certidão negativa</b></div>
+            <small>Regularidade fiscal como requisito prático do negócio.</small>
+          </div>
+        </div>
+
+        <div class="item">
+          <input type="checkbox" id="x_licit" />
+          <div>
+            <div><b>Participa de licitação / contrato público</b></div>
+            <small>Risco operacional por exigências de habilitação e regularidade.</small>
+          </div>
+        </div>
+
+        <div class="item">
+          <input type="checkbox" id="x_regul" />
+          <div>
+            <div><b>Regulamentação com órgão público</b></div>
+            <small>Ex.: ANTT, IBAMA, prefeitura, autarquia, conselho, etc.</small>
+          </div>
+        </div>
+
+        <div class="item">
+          <input type="checkbox" id="x_fat" />
+          <div>
+            <div><b>Baixa de faturamento / crise de caixa</b></div>
+            <small>Agrava urgência e necessidade de previsibilidade.</small>
+          </div>
+        </div>
+
+        <div class="item">
+          <input type="checkbox" id="x_prot" />
+          <div>
+            <div><b>Protesto / restrição cadastral</b></div>
+            <small>Impacto comercial e reputacional (Serasa/Cartório).</small>
+          </div>
+        </div>
+
+        <div class="item">
+          <input type="checkbox" id="x_prazos" />
+          <div>
+            <div><b>Prazos urgentes / intimação recente</b></div>
+            <small>Pressão temporal real (pode elevar risco).</small>
+          </div>
+        </div>
+      </div>
+      <div class="sub">Esses itens não “escolhem risco”. Eles só alimentam a classificação automática.</div>
+    </div>
+
+    <div class="form-group">
+      <label>Relato do problema (texto livre)</label>
+      <textarea id="text" rows="7" placeholder="Descreve os fatos: sisbajud, penhora, oficial de justiça, licitação, certidão, baixa de faturamento..."></textarea>
+      <div class="sub">O motor usa palavras-chave + gatilhos para classificar o risco e gerar a fundamentação.</div>
+    </div>
+
+    <button class="btn btn-main" onclick="analisar()">Analisar estratégias ⚡</button>
+  </section>
+
+  <section class="right">
+    <div id="lock" class="lock">🔒 Aguardando análise técnica</div>
+
+    <div id="out" class="blur">
+      <span id="risk" class="risk">--</span>
+
+      <div class="box">
+        <h3>Síntese do diagnóstico</h3>
+        <p id="sum" style="font-weight:900;font-size:1.05rem"></p>
+        <p id="det" style="margin-top:8px;color:#334155"></p>
+      </div>
+
+      <label>Estratégia</label>
+      <div class="strats">
+        <button id="s-cons" onclick="setStrat('cons')">Conservadora</button>
+        <button id="s-reco" class="active" onclick="setStrat('reco')">Recomendada</button>
+        <button id="s-agre" onclick="setStrat('agre')">Agressiva</button>
+      </div>
+
+      <div class="box">
+        <h3>O que vamos fazer</h3>
+        <p id="str-desc" style="font-weight:700"></p>
+        <div id="acts"></div>
+      </div>
+
+      <div class="price">
+        <div style="opacity:.85;font-size:.82rem;text-transform:uppercase;font-weight:900">Investimento mensal (12 meses)</div>
+        <div class="val" id="mval">R$ 0,00</div>
+        <div id="tval" style="opacity:.7;margin-top:6px"></div>
+
+        <div class="split">
+          <div class="pill">
+            <div class="t">Assessoria padrão</div>
+            <div class="v" id="assv">R$ 199,99</div>
+          </div>
+          <div class="pill">
+            <div class="t">Operação técnica</div>
+            <div class="v" id="opv">R$ 0,00</div>
+          </div>
+        </div>
+
+        <div class="note">
+          A assessoria padrão é fixa. O restante compõe a operação técnica (execução do plano, análises, rotas e acompanhamento).
         </div>
       </div>
 
-      <div class="hint">
-        1) dívida → 2) % garantido → 3) custo mensal → 4) split 10/90 → 5) total 12 meses
+      <div class="legal">
+        <strong>Fundamentação técnica aplicada</strong>
+        <div id="legal" style="margin-top:10px"></div>
+        <div style="margin-top:12px;opacity:.9">
+          <strong>Notas gerais:</strong> Parecer preliminar, sujeito a auditoria documental e checagens em sistemas oficiais. A rota final depende da fase (administrativa x judicial), natureza do crédito e riscos operacionais. Não há promessa de resultado.
+        </div>
       </div>
 
-      <div class="footer-actions">
-        <button type="button" onclick="calcular()">Calcular</button>
-        <button type="button" onclick="imprimir()">Gerar / Imprimir proposta</button>
-        <button type="button" onclick="limpar()">Limpar</button>
-      </div>
+      <button class="btn btn-dark" onclick="window.print()">Imprimir parecer</button>
     </div>
-
-    <!-- RESULTADOS -->
-    <div class="card result">
-      <div class="kpi"><div class="t">Empresa</div><div class="v" id="rEmpresa">—</div></div>
-      <div class="kpi"><div class="t">Dívida</div><div class="v" id="rDivida">—</div></div>
-      <div class="kpi"><div class="t">Garantia</div><div class="v" id="rGarantia">—</div></div>
-      <div class="kpi"><div class="t">Mensal</div><div class="v" id="rMensal">—</div></div>
-      <div class="kpi"><div class="t">Assessoria (10%)</div><div class="v" id="rAss">—</div></div>
-      <div class="kpi"><div class="t">Aluguel (90%)</div><div class="v" id="rAlug">—</div></div>
-      <div class="kpi"><div class="t">Total 12 meses</div><div class="v" id="rTotal">—</div></div>
-    </div>
-
-  </div>
-</div>
-
-<!-- IMPRESSÃO -->
-<div id="printArea">
-  <div class="p-title">Proposta – Contrato de Garantia (12 meses)</div>
-  <div class="p-sub" id="pMeta"></div>
-
-  <div class="p-box">
-    <div class="p-lbl">Empresa</div><div class="p-val" id="pEmpresa"></div>
-    <div class="p-lbl">Dívida</div><div class="p-val" id="pDivida"></div>
-    <div class="p-lbl">Garantia</div><div class="p-val" id="pGarantia"></div>
-    <div class="p-lbl">Mensal</div><div class="p-val" id="pMensal"></div>
-    <div class="p-lbl">Assessoria (10%)</div><div class="p-val" id="pAss"></div>
-    <div class="p-lbl">Aluguel (90%)</div><div class="p-val" id="pAlug"></div>
-    <div class="p-lbl">Total 12 meses</div><div class="p-val" id="pTotal"></div>
-  </div>
-
-  <div class="p-box p-legal">
-    Em execução judicial, a regularização do débito normalmente ocorre por uma das seguintes vias:
-    (i) pagamento integral; (ii) parcelamento/negociação; ou (iii) garantia do juízo por bem idôneo
-    (ex.: imóvel, seguro-garantia ou fiança bancária), permitindo previsibilidade e continuidade da
-    discussão do débito, conforme aceitação do juízo competente. Esta proposta possui caráter informativo
-    e comercial, não substituindo a análise do caso concreto nem implicando garantia de resultado.
-  </div>
-
-  <div class="p-box">
-    <strong>José Falcão</strong><br>
-    Especialista em Negociação Regulamentar e Risco Operacional<br>
-    Grupo Villela – Gestão Empresarial<br>
-    Contato: (51) 9 9203-9175
-  </div>
-</div>
+  </section>
+</main>
 
 <script>
-/* ===========================
-   ACESSO (TRIAL ÚNICO + MASTER)
-   - Não expõe senhas na tela
-   =========================== */
-const SENHA_MASTER = "joséfalcao";
-const SENHA_TRIAL  = "1234";
-const TRIAL_MS     = 1 * 60 * 1000;       // 1 min (AMOSTRA)
-const MASTER_MS    = 8 * 60 * 60 * 1000;  // 8h (ajusta se quiser)
+  const PASS = "joséfalcao";
+  const ASSESSORIA_FIXA = 199.99; // mensal fixa
 
-const KEY_EXPIRA = "acesso_expira_em";
-const KEY_MODO = "acesso_modo";            // "trial" | "master"
-const KEY_TRIAL_USADO = "trial_ja_usado";  // "1" se trial já foi usado
+  let strat = "reco";
+  let risk = "MEDIO";
 
-function showErr(msg){
-  const el = document.getElementById('lockErr');
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-function hideErr(){
-  const el = document.getElementById('lockErr');
-  el.textContent = '';
-  el.style.display = 'none';
-}
-function showLock(){
-  document.getElementById('lock').style.display = 'flex';
-}
-function hideLock(){
-  document.getElementById('lock').style.display = 'none';
-  hideErr();
-}
-function setAcesso(modo){
-  const dur = (modo === "trial") ? TRIAL_MS : MASTER_MS;
-  const expiraEm = Date.now() + dur;
-  localStorage.setItem(KEY_EXPIRA, String(expiraEm));
-  localStorage.setItem(KEY_MODO, modo);
-  if(modo === "trial") localStorage.setItem(KEY_TRIAL_USADO, "1");
-  hideLock();
-  agendarRelock();
-}
-function bloquearAgora(){
-  localStorage.removeItem(KEY_EXPIRA);
-  localStorage.removeItem(KEY_MODO);
-  document.getElementById('senha').value = "";
-  showLock();
+  // Palavras-chave (amplia conforme tua operação)
+  const KW = {
+    crit: [
+      "sisbajud","bacenjud","bloqueio","conta bloqueada","contas bloqueadas","penhora","arresto","sequestro",
+      "leilao","leilão","oficial de justiça","constricao","constrição","indisponibilidade","restricao judicial"
+    ],
+    alto: [
+      "execucao fiscal","execução fiscal","execucao","execução","ajuizada","cda","citacao","citação","intimacao","intimação",
+      "protesto","serasa","spc","cartorio","cartório","divida ativa","dívida ativa","renajud"
+    ],
+    medio: [
+      "cnd","certidao","certidão","cpd-en","licitação","licitacao","regularidade fiscal","antt","ibama",
+      "prefeitura","autarquia","conselho","parcelamento","simples nacional","exclusao","exclusão","reenquadramento",
+      "baixa de faturamento","queda de faturamento","crise de caixa","sem caixa","fluxo de caixa"
+    ]
+  };
 
-  const trialUsado = localStorage.getItem(KEY_TRIAL_USADO) === "1";
-  if(trialUsado){
-    showErr("A amostra já foi utilizada neste navegador. Utilize a senha autorizada para acesso.");
-  } else {
-    hideErr();
-  }
-}
-function validarAcesso(){
-  const expiraEm = Number(localStorage.getItem(KEY_EXPIRA) || "0");
-  if(Date.now() < expiraEm){
-    hideLock();
-    agendarRelock();
-  } else {
-    bloquearAgora();
-  }
-}
-function agendarRelock(){
-  if(window.__relockTimer) clearTimeout(window.__relockTimer);
-  const expiraEm = Number(localStorage.getItem(KEY_EXPIRA) || "0");
-  const falta = expiraEm - Date.now();
-  if(falta > 0){
-    window.__relockTimer = setTimeout(() => bloquearAgora(), falta);
-  }
-}
-function acessar(){
-  const digitada = document.getElementById('senha').value;
-
-  if(digitada === SENHA_MASTER){
-    setAcesso("master");
-    return;
-  }
-
-  if(digitada === SENHA_TRIAL){
-    const trialUsado = localStorage.getItem(KEY_TRIAL_USADO) === "1";
-    if(trialUsado){
-      showErr("A amostra já foi utilizada neste navegador. Utilize a senha autorizada para acesso.");
-      return;
+  // Estratégias: descrição + atos (bullets) + multiplicador comercial
+  const STR = {
+    cons: {
+      m: 1.00,
+      desc: "Rota direta de regularização e previsibilidade, com mínima fricção e foco em continuidade do negócio.",
+      atos: [
+        "Triagem do passivo e organização por prioridade (caixa, certidão, riscos imediatos).",
+        "Definição do caminho de regularização/negociação mais aderente ao cenário.",
+        "Checklist de pendências que travam regularidade e impactos operacionais.",
+        "Acompanhamento mensal e ajustes conforme evolução do caso."
+      ]
+    },
+    reco: {
+      m: 1.35,
+      desc: "Atuação técnica completa orientada a risco: estabiliza o cenário e melhora o custo total com governança do caso.",
+      atos: [
+        "Mapeamento de risco (judicialização, travas, constrições) e plano por etapas.",
+        "Organização documental e narrativa técnica para sustentar pedidos e negociações.",
+        "Estratégia para reduzir pressão operacional e recuperar previsibilidade.",
+        "Monitoramento e replanejamento mensal com base em eventos do caso."
+      ]
+    },
+    agre: {
+      m: 1.70,
+      desc: "Intervenção rápida e intensa para conter impacto operacional e recuperar margem de manobra (quando justificado).",
+      atos: [
+        "Resposta imediata para conter dano (prioridade: caixa e operação).",
+        "Atuação técnica reforçada com cadência curta e decisões rápidas.",
+        "Estruturação agressiva por etapas: conter → estabilizar → otimizar condição.",
+        "Acompanhamento próximo e ajustes contínuos do plano."
+      ]
     }
-    setAcesso("trial");
-    return;
+  };
+
+  // Fundamentação dinâmica por estratégia + risco
+  const BASE_NORM = [
+    "CTN, art. 151: hipóteses de suspensão da exigibilidade (ex.: parcelamento; e, no contencioso, medidas cuja eficácia dependa de decisão competente).",
+    "Lei nº 6.830/80 (LEF): rito da execução fiscal e atos típicos (citação, penhora, avaliação e expropriação).",
+    "CPC (aplicação subsidiária): tutela de urgência e instrumentos processuais para contenção de risco, quando cabíveis.",
+    "A rota final depende da fase de cobrança, natureza do crédito e documentação disponível."
+  ];
+
+  const FUND = {
+    cons: {
+      MEDIO: [
+        "Foco em regularização e previsibilidade: reduzir atrito e manter regularidade operacional.",
+        "Priorização de medidas que evitem escalada do passivo e travas de certidão/contratos."
+      ],
+      ALTO: [
+        "Com sinais de execução/pressão, prioriza estabilização e regularização estruturada, com mínimo litígio.",
+        "Ênfase em controle de prazos e redução de risco operacional por gestão do caso."
+      ],
+      CRITICO: [
+        "Com risco imediato (bloqueio/penhora), atua para reduzir impacto operacional sem prometer reversão automática.",
+        "Plano de contenção + reorganização do cenário para viabilizar regularização com previsibilidade."
+      ]
+    },
+    reco: {
+      MEDIO: [
+        "Inclui auditoria técnica do passivo (origem, composição, encargos) e seleção da rota mais eficiente.",
+        "Objetivo: melhorar custo total e reduzir vulnerabilidades sem assumir riscos desnecessários."
+      ],
+      ALTO: [
+        "Adiciona análise de risco processual e consistência dos atos/títulos, sem presunção de nulidade.",
+        "Objetivo: conter escalada (restrições/penhoras) e reconstruir controle do cenário para regularização."
+      ],
+      CRITICO: [
+        "Prioriza contenção + estabilização: reduzir dano operacional e recuperar governança do caso.",
+        "Estrutura medidas compatíveis com o rito aplicável e evidências documentais disponíveis."
+      ]
+    },
+    agre: {
+      MEDIO: [
+        "Só é indicada com justificativa concreta (janela estratégica, travas severas ou escalada iminente).",
+        "Busca acelerar controle do cenário com medidas mais incisivas e cadência curta."
+      ],
+      ALTO: [
+        "Com execução e escalada, assume postura de intervenção rápida para recuperar margem de manobra.",
+        "Pode envolver medidas de urgência quando cabíveis, sempre com base documental."
+      ],
+      CRITICO: [
+        "Resposta imediata para conter dano (caixa/operacional) e atuar pelo caminho mais rápido defensável.",
+        "Atuação intensa orientada a risco, com reavaliação contínua conforme eventos do caso."
+      ]
+    }
+  };
+
+  function login(){
+    if(document.getElementById("pass").value === PASS){
+      document.getElementById("login").style.display = "none";
+      document.getElementById("app").classList.remove("hidden");
+    }
   }
 
-  showErr("Senha incorreta.");
-}
-
-// Enter para enviar
-document.addEventListener('keydown', (e) => {
-  const lockVisible = document.getElementById('lock').style.display !== 'none';
-  if(lockVisible && e.key === 'Enter'){
-    acessar();
+  function mask(i){
+    let v=i.value.replace(/\D/g,"");
+    v=(v/100).toFixed(2).replace(".",",");
+    v=v.replace(/(\d)(?=(\d{3})+(?!\d))/g,"$1.");
+    i.value="R$ "+v;
   }
-});
 
-window.addEventListener('load', validarAcesso);
+  function analyzeTextScore(txt){
+    const t = (txt||"").toLowerCase();
+    let score = 0;
+    if(KW.crit.some(k=>t.includes(k))) score += 6;
+    if(KW.alto.some(k=>t.includes(k))) score += 3;
+    if(KW.medio.some(k=>t.includes(k))) score += 1;
+    return score;
+  }
 
-/* ===========================
-   CALCULADORA
-   =========================== */
-function n(v){
-  return parseFloat(String(v||"").replace(/\./g,'').replace(',','.')) || 0;
-}
-function m(v){
-  return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-}
-function calcular(){
-  const emp = (empresa.value || "").trim();
-  const d = n(divida.value);
-  const p = n(pct.value)/100;
-  const t = n(taxa.value)/100;
+  function analyzeChecksScore(){
+    let s = 0;
+    const exec = document.getElementById("x_exec").checked;
+    const penh = document.getElementById("x_penhora").checked;
+    const sisb = document.getElementById("x_sisbajud").checked;
+    const bens = document.getElementById("x_bens").checked;
+    const cert = document.getElementById("x_certidao").checked;
+    const lic  = document.getElementById("x_licit").checked;
+    const reg  = document.getElementById("x_regul").checked;
+    const fat  = document.getElementById("x_fat").checked;
+    const prot = document.getElementById("x_prot").checked;
+    const praz = document.getElementById("x_prazos").checked;
 
-  const g = d*p;
-  const mensal = g*t;
-  const ass = mensal*0.10;
-  const alug = mensal*0.90;
-  const total = mensal*12;
+    if(sisb) s += 7;
+    if(penh) s += 6;
+    if(exec) s += 4;
+    if(bens) s += 3;
+    if(cert) s += 2;
+    if(lic)  s += 2;
+    if(reg)  s += 2;
+    if(prot) s += 2;
+    if(fat)  s += 2;
+    if(praz) s += 2;
 
-  rEmpresa.innerText = emp || "—";
-  rDivida.innerText = d>0 ? m(d) : "—";
-  rGarantia.innerText = d>0 ? (p*100)+'% → '+m(g) : "—";
-  rMensal.innerText = d>0 ? m(mensal) : "—";
-  rAss.innerText = d>0 ? m(ass) : "—";
-  rAlug.innerText = d>0 ? m(alug) : "—";
-  rTotal.innerText = d>0 ? m(total) : "—";
+    // combos que elevam risco
+    if(exec && penh) s += 4;
+    if(exec && sisb) s += 4;
 
-  pEmpresa.innerText = emp || "—";
-  pDivida.innerText = d>0 ? m(d) : "—";
-  pGarantia.innerText = d>0 ? (p*100)+'% → '+m(g) : "—";
-  pMensal.innerText = d>0 ? m(mensal) : "—";
-  pAss.innerText = d>0 ? m(ass) : "—";
-  pAlug.innerText = d>0 ? m(alug) : "—";
-  pTotal.innerText = d>0 ? m(total) : "—";
-  pMeta.innerText = 'Gerado em ' + new Date().toLocaleString('pt-BR');
-}
-function imprimir(){
-  calcular();
-  window.print();
-}
-function limpar(){
-  empresa.value = '';
-  divida.value = '';
-  pct.value = '100';
-  calcular();
-}
+    return s;
+  }
+
+  function classificarRisco(totalScore){
+    // Heurística simples e “vendável”
+    if(totalScore >= 12) return "CRITICO";
+    if(totalScore >= 6) return "ALTO";
+    return "MEDIO";
+  }
+
+  function setRiskUI(r){
+    const el=document.getElementById("risk");
+    el.innerText="RISCO " + (r==="CRITICO" ? "CRÍTICO" : r);
+    el.style.background = r==="CRITICO" ? "var(--crit)" : r==="ALTO" ? "var(--alto)" : "var(--medio)";
+
+    const sum=document.getElementById("sum");
+    const det=document.getElementById("det");
+
+    if(r==="CRITICO"){
+      sum.innerText="ALTA VULNERABILIDADE OPERACIONAL E PATRIMONIAL";
+      det.innerText="Há sinais de constrição/risco imediato (bloqueio/penhora/contas bloqueadas). Prioridade: conter impacto e recuperar previsibilidade.";
+    } else if(r==="ALTO"){
+      sum.innerText="PRESSÃO JUDICIAL / TRAVAS OPERACIONAIS RELEVANTES";
+      det.innerText="Há sinais de judicialização e/ou restrições que tendem a escalar. Prioridade: estabilizar cenário e construir rota de regularização com controle.";
+    } else {
+      sum.innerText="CENÁRIO CONTROLÁVEL COM PLANEJAMENTO";
+      det.innerText="Sem sinais críticos evidentes. Prioridade: previsibilidade, regularidade e melhor condição econômica global.";
+    }
+  }
+
+  function fmtList(items){
+    return `<ul>${items.map(i=>`<li>${i}</li>`).join("")}</ul>`;
+  }
+
+  function renderActs(){
+    const a = STR[strat].atos;
+    document.getElementById("acts").innerHTML = fmtList(a);
+  }
+
+  function renderLegal(){
+    const rKey = risk; // MEDIO/ALTO/CRITICO
+    let html = "";
+
+    // Bloco especial: execução + penhora/bloqueio (tua exigência)
+    const exec = document.getElementById("x_exec").checked;
+    const penh = document.getElementById("x_penhora").checked;
+    const sisb = document.getElementById("x_sisbajud").checked;
+
+    if(exec && (penh || sisb)){
+      html += `
+        <div class="box" style="border-left-color: var(--a); background:#eef2ff">
+          <h3>Ponto técnico relevante</h3>
+          <p>
+            Em cenário de <b>execução fiscal</b> com <b>penhora/bloqueio</b>, é comum que, após a citação/intimação,
+            o contribuinte seja instado a <b>pagar, parcelar ou garantir o débito</b>.
+            Seguir um desses caminhos tende a facilitar a <b>demonstração de boa-fé</b> e de capacidade de organização do passivo,
+            o que é elemento importante para sustentar tratativas e buscar condições mais adequadas conforme o caso.
+          </p>
+        </div>
+      `;
+    }
+
+    html += `
+      <div style="margin-top:10px">
+        <strong>Aplicação ao caso (estratégia ${strat.toUpperCase()} / risco ${rKey}):</strong>
+        ${fmtList(FUND[strat][rKey])}
+      </div>
+      <div style="margin-top:10px">
+        <strong>Base normativa e técnica:</strong>
+        ${fmtList(BASE_NORM)}
+      </div>
+    `;
+
+    document.getElementById("legal").innerHTML = html;
+  }
+
+  function parseBRL(input){
+    const raw = (input||"").replace(/[^\d]/g,"");
+    return (parseFloat(raw)||0)/100;
+  }
+
+  function calcPricing(valorPassivo){
+    // taxa interna por risco (não aparece)
+    const rate = (risk==="CRITICO") ? 0.0045 : (risk==="ALTO") ? 0.0032 : 0.0020;
+    const fixed = (risk==="CRITICO") ? 1800 : (risk==="ALTO") ? 900 : 450;
+
+    let mensalBase = (valorPassivo * rate) + fixed;
+    let mensal = mensalBase * STR[strat].m;
+
+    // mínimo mensal pra não “achatar”
+    const minMensal = 900;
+    if(mensal < minMensal) mensal = minMensal;
+
+    // separar assessoria fixa e operação técnica
+    const assess = ASSESSORIA_FIXA;
+    const oper = Math.max(0, mensal - assess);
+
+    return { mensal, assess, oper, total: mensal * 12 };
+  }
+
+  function analisar(){
+    const vStr = document.getElementById("value").value;
+    if(!vStr || vStr === "R$ 0,00") return alert("Insere o valor do passivo.");
+
+    document.getElementById("lock").style.display="none";
+    document.getElementById("out").classList.remove("blur");
+
+    calcularTudo();
+  }
+
+  function setStrat(s){
+    strat=s;
+    document.querySelectorAll(".strats button").forEach(b=>b.classList.remove("active"));
+    document.getElementById("s-"+s).classList.add("active");
+    calcularTudo();
+  }
+
+  function calcularTudo(){
+    const valor = parseBRL(document.getElementById("value").value);
+    const txtScore = analyzeTextScore(document.getElementById("text").value);
+    const chkScore = analyzeChecksScore();
+    const totalScore = txtScore + chkScore;
+
+    risk = classificarRisco(totalScore);
+
+    setRiskUI(risk);
+
+    // estratégia + atos
+    document.getElementById("str-desc").innerText = STR[strat].desc;
+    renderActs();
+
+    // preço
+    const p = calcPricing(valor);
+    document.getElementById("mval").innerText = p.mensal.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+    document.getElementById("tval").innerText = "Total contrato (12 meses): " + p.total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+    document.getElementById("assv").innerText = p.assess.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+    document.getElementById("opv").innerText = p.oper.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+
+    // fundamentação
+    renderLegal();
+  }
 </script>
 
 </body>
